@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Cron task, everyday at 0:00
+date=$(date +%Y-%m-%d)
+cat /var/log/messages | grep "Traffic" > /var/log/traffic/log_$date
+
+# check si il existe des logs vieux de 365 jours
+date_log_rem=$(date -d "$dataset_date - 365 days" +%Y-%m-%d)
+filename=/var/log/traffic/log_$date_log_rem
+
+if [ -f $filename ]; then
+	rm $filename
+fi
+
+
