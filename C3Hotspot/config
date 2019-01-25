@@ -1,0 +1,6 @@
+#!/bin/bash
+
+geany /etc/hostapd/hostapd.conf /etc/dnsmasq.conf /etc/dhcpcd.conf \
+/etc/network/interfaces &
+
+
