@@ -31,8 +31,8 @@ fi
 #Install des exécutables
 chmod u+x c3start
 chmod u+x c3stop
-cp -v c3start.sh /usr/bin/c3start
-cp -v c3stop.sh /usr/bin/c3stop
+cp -v c3start /usr/bin/c3start
+cp -v c3stop /usr/bin/c3stop
 
 echo "Hotspot installé !"
 # Redémarrage des services
