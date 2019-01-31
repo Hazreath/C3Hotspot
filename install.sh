@@ -38,4 +38,5 @@ echo "Hotspot installé !"
 # Redémarrage des services
 service dhcpcd restart
 service dnsmasq restart
+crontab -l | { cat; echo "@reboot sudo c3start";} | crontab -
 c3start

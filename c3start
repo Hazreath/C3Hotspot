@@ -3,4 +3,5 @@
 service dhcpcd restart
 ifconfig wlan0 169.51.42.1 up
 service dnsmasq restart
+iptables-restore < /home/pi/C3Hotspot/iptables_hotspot.sav
 hostapd /etc/hostapd/hostapd.conf
