@@ -3,3 +3,5 @@
 service dhcpcd restart
 service dnsmasq stop
 pkill hostapd
+ndsctl stop
+pkill httpry

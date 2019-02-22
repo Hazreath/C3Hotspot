@@ -4,4 +4,7 @@ service dhcpcd restart
 ifconfig wlan0 169.51.42.1 up
 service dnsmasq restart
 iptables-restore < /home/pi/C3Hotspot/iptables_hotspot.sav
+nodogsplash
+httpry -F -i wlan0 -f timestamp,source-ip,host -d -o /var/log/C3Hotspot/activity.log
 hostapd /etc/hostapd/hostapd.conf
+

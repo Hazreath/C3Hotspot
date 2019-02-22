@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Join activity and clients log in a single file
+# /!\ YOU DON'T HAVE THE RIGHT TO READ THIS FILE THIS GOES AGAINST THE LAW/!\
+# 	  ONLY JUSTICE HAS THE RIGHT TO DO SO
+#
+# Cron task executed everyday 0h00
+# @author benji
+
+
+# Arret temporaire du hotspot
+sudo ndsctl stop # arret hotspot -> déconnexion de tous les clients
+pkill httpry
+service hostapd stop
+
+# FICHIERS
+fic_activity="/var/log/C3Hotspot/activity.log"
+fic_clients="/var/log/C3Hotspot/clients.log"
+
+# Liste des clients entrants
+clients_in=$(cat $fic_clients | grep 'IN')
+
+# Creation du fichier de bilan traffic journalier, terminé par la date
+# du jour
+today=$(date +%d%m%Y)
+output_file="/var/log/C3Hotspot/Traffic-$today"
+rm $output_file
+touch $output_file
+
+while read -r client
+do
+
+	# Plage de connexion : heure d'arrivée
+	split=$(echo $client | cut -d' ' -f 1)
+	hour_in=$((echo $client | cut -d' ' -f 1) | cut -d '|' -f 2)
+	
+	# Infos clients
+	ip=$((echo $client | cut -d ' ' -f 5)| cut -d ':' -f 2)
+	mac=$(echo $client | cut -d ' ' -f 6)
+	nom=$((echo $client | cut -d ' ' -f 3)| cut -d ':' -f 2)
+	carte=$((echo $client | cut -d ' ' -f 4)| cut -d ':' -f 2)
+	
+	# Recherche de la plus proche déconnexion du client
+	deco=$(((cat $fic_clients | grep $ip) | grep $nom) | grep 'OUT' -m 1)
+	hour_out=$((echo $deco |cut -d ' ' -f 1) | cut -d '|' -f 2)  
+	
+	echo "CURRENT USER : $nom $ip $hour_in-$hour_out"
+	# recherche des connexions correspondantes entre hour_in & hour_out
+	# de l'utilisateur
+	
+	# activités internet associées à l'addresse ip du client
+	act_filter=$(cat $fic_activity | grep $ip)
+	while read -r act;
+	do
+		hour=$((echo $act | cut -d ' ' -f 2) | cut -c 1-6)
+		h_act=$(echo $hour | cut -d ':' -f 1)
+		m_act=$(echo $hour | cut -d ':' -f 2)
+		h_in=$(echo $hour_in | cut -d ':' -f 1)
+		m_in=$(echo $hour_in | cut -d ':' -f 2)
+		h_out=$(echo $hour_out | cut -d ':' -f 1)
+		m_out=$(echo $hour_out | cut -d ':' -f 2)
+		
+		
+		# Si l'heure de l'act est comprise dans la plage de connexion du client
+		# alors on la log à son nom
+		if [[ (( "$h_act" -gt "$h_in" ) || ( "$h_act" -eq "$h_in" && "$m_act" -ge "$m_in")) && 
+		      (("$h_act" -lt "$h_out") || ("$h_act" -eq "$h_out" && "$m_act" -le "$m_out")) ]]; then
+			
+			echo "$nom:$carte $act $mac" >> $output_file
+		else 
+			echo "non associé : $act"
+		fi
+		
+	done <<< "$act_filter"
+done <<< "$clients_in"
+
+# Suppr du contenu de activity.log et clients.log
+rm $fic_activity
+rm $fic_clients
+touch $fic_activity
+touch $fic_clients
+
+# Relancement nds et httpry
+service hostapd start
+sudo nodogsplash
+httpry -F -i wlan0 -f timestamp,source-ip,host -d -o /var/log/C3Hotspot/activity.log 
