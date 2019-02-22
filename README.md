@@ -3,6 +3,7 @@
 Changelogs 
 
 v0.2 : Captive Portal !
+
 I added a captive portal to the solution, using nodogsplash and nginx.
 Atm, auth works by querying a company ws to check if the credentials are relied to an user.
 Everything is js/php/shell and it is simple enough so that you can use it as you want !
